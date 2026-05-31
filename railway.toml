@@ -1,4 +1,3 @@
 [deploy]
-startCommand = "npm run start:api"
 healthcheckPath = "/docs"
-healthcheckTimeout = 30
+healthcheckTimeout = 60
