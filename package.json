@@ -1,0 +1,30 @@
+{
+  "name": "metal-graph",
+  "version": "1.0.0",
+  "description": "Metal Archives scraper and graph backend",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "postinstall": "playwright install chromium",
+    "start:api": "node src/server.js",
+    "format": "prettier --write \"src/**/*.js\" \"tests/**/*.js\"",
+    "format:check": "prettier --check \"src/**/*.js\" \"tests/**/*.js\""
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.0.4",
+    "@hono/swagger-ui": "^0.6.1",
+    "@hono/zod-openapi": "^1.4.0",
+    "@neo4j/graphql": "^7.5.3",
+    "dotenv": "^17.4.2",
+    "graphql": "^16.14.0",
+    "hono": "^4.12.23",
+    "neo4j-driver": "^6.0.1",
+    "playwright": "^1.60.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "prettier": "^3.8.3"
+  }
+}
