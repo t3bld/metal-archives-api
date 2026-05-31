@@ -1,4 +1,5 @@
 .env
+.github/
 node_modules/
 *.json
 !package.json
