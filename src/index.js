@@ -104,14 +104,12 @@ async function handleArtist(args) {
 }
 
 async function handleArtists(args) {
-  console.log(`Searching for artists: "${args.artists}"…`);
   const results = await searchArtists(args.artists, { limit: args.limit });
   if (results.length === 0) {
     console.error("No artists found.");
     process.exit(1);
   }
-  for (const r of results)
-    console.log(`  ${r.id.padEnd(10)} ${r.name.padEnd(40)} ${r.genre} — ${r.country}`);
+  output(args, results, "Artists");
 }
 
 async function handleRelease(args) {
@@ -132,14 +130,12 @@ async function handleRelease(args) {
 }
 
 async function handleReleases(args) {
-  console.log(`Searching for releases: "${args.releases}"…`);
   const results = await searchReleases(args.releases, { limit: args.limit });
   if (results.length === 0) {
     console.error("No releases found.");
     process.exit(1);
   }
-  for (const r of results)
-    console.log(`  ${r.id.padEnd(10)} ${r.title.padEnd(40)} ${r.type} — ${r.artistName}`);
+  output(args, results, "Releases");
 }
 
 async function handlePerson(args) {
@@ -160,16 +156,12 @@ async function handlePerson(args) {
 }
 
 async function handlePersons(args) {
-  console.log(`Searching for persons: "${args.persons}"…`);
   const results = await searchPersons(args.persons, { limit: args.limit });
   if (results.length === 0) {
     console.error("No persons found.");
     process.exit(1);
   }
-  for (const r of results)
-    console.log(
-      `  ${r.id.padEnd(10)} ${(r.pseudonym ?? "").padEnd(30)} ${r.name ?? ""} — ${r.country ?? ""}`
-    );
+  output(args, results, "Persons");
 }
 
 async function handleLabel(args) {
@@ -190,14 +182,12 @@ async function handleLabel(args) {
 }
 
 async function handleLabels(args) {
-  console.log(`Searching for labels: "${args.labels}"…`);
   const results = await searchLabels(args.labels, { limit: args.limit });
   if (results.length === 0) {
     console.error("No labels found.");
     process.exit(1);
   }
-  for (const r of results)
-    console.log(`  ${r.id.padEnd(10)} ${r.name.padEnd(40)} ${r.status ?? ""} — ${r.country ?? ""}`);
+  output(args, results, "Labels");
 }
 
 async function handleCountry(args) {
