@@ -4,9 +4,11 @@ Scrapes [Encyclopaedia Metallum](https://www.metal-archives.com), provides a RES
 
 ## Techstack
 
-- Node.js, Hono, Zod
+- Node.js, Zod
 - Playwright
-- Neo4j
+- Neo4j (GraphDB)
+- Railway (Hosting)
+- Brightdata (Scraper Proxy)
 
 ## Getting Started
 
