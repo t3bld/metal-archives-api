@@ -11,9 +11,13 @@ function parseArgs(argv) {
   const args = {
     country: null,
     artist: null,
+    artists: null,
     release: null,
+    releases: null,
     person: null,
+    persons: null,
     label: null,
+    labels: null,
     output: null,
     limit: 200,
   };
@@ -27,24 +31,40 @@ function parseArgs(argv) {
       args.artist = v;
       return true;
     },
+    "--artists": (v) => {
+      args.artists = v;
+      return true;
+    },
+    "--release": (v) => {
+      args.release = v;
+      return true;
+    },
+    "--releases": (v) => {
+      args.releases = v;
+      return true;
+    },
+    "--person": (v) => {
+      args.person = v;
+      return true;
+    },
+    "--persons": (v) => {
+      args.persons = v;
+      return true;
+    },
+    "--label": (v) => {
+      args.label = v;
+      return true;
+    },
+    "--labels": (v) => {
+      args.labels = v;
+      return true;
+    },
     "--output": (v) => {
       args.output = v;
       return true;
     },
     "--limit": (v) => {
       args.limit = parseInt(v, 10);
-      return true;
-    },
-    "--releases": (v) => {
-      args.release = v;
-      return true;
-    },
-    "--persons": (v) => {
-      args.person = v;
-      return true;
-    },
-    "--labels": (v) => {
-      args.label = v;
       return true;
     },
   };
@@ -57,26 +77,6 @@ function parseArgs(argv) {
   return args;
 }
 
-async function resolveId(raw, { entity, flag, searchFn, listRow, found }) {
-  if (/^\d+$/.test(raw)) return raw;
-
-  console.log(`Searching for ${entity}: "${raw}"…`);
-  const results = await searchFn(raw);
-
-  if (results.length === 0) {
-    console.error(`No ${entity}s found for "${raw}".`);
-    process.exit(1);
-  }
-  if (results.length > 1) {
-    console.log(`Found ${results.length} matches. Use ${flag} <id> to scrape a specific one:\n`);
-    for (const r of results) console.log(listRow(r));
-    process.exit(0);
-  }
-
-  console.log(`Found: ${found(results[0])}`);
-  return results[0].id;
-}
-
 function output(args, detail, label) {
   if (args.output) {
     fs.writeFileSync(args.output, JSON.stringify(detail, null, 2), "utf8");
@@ -87,18 +87,15 @@ function output(args, detail, label) {
 }
 
 async function handleArtist(args) {
-  const id = await resolveId(args.artist, {
-    entity: "artist",
-    flag: "--artist",
-    searchFn: (q) => searchArtists(q, { limit: args.limit }),
-    listRow: (r) => `  ${r.id.padEnd(8)} ${r.name.padEnd(40)} ${r.genre} — ${r.country}`,
-    found: (r) => `${r.name} (ID ${r.id})`,
-  });
-
-  console.log(`Scraping detail for artist ID: ${id}`);
+  const raw = args.artist;
+  if (!/^\d+$/.test(raw)) {
+    console.error(`--artist requires a numeric ID. To search by name use --artists "<name>".`);
+    process.exit(1);
+  }
+  console.log(`Scraping detail for artist ID: ${raw}`);
   let detail;
   try {
-    detail = await scrapeArtist({ id });
+    detail = await scrapeArtist({ id: raw });
   } catch (err) {
     console.error(err.message);
     process.exit(1);
@@ -106,19 +103,27 @@ async function handleArtist(args) {
   output(args, detail, "Artist");
 }
 
-async function handleRelease(args) {
-  const id = await resolveId(args.release, {
-    entity: "release",
-    flag: "--releases",
-    searchFn: (q) => searchReleases(q, { limit: args.limit }),
-    listRow: (r) => `  ${r.id.padEnd(8)} ${r.title.padEnd(40)} ${r.type} — ${r.artistName}`,
-    found: (r) => `${r.title} by ${r.artistName} (ID ${r.id})`,
-  });
+async function handleArtists(args) {
+  console.log(`Searching for artists: "${args.artists}"…`);
+  const results = await searchArtists(args.artists, { limit: args.limit });
+  if (results.length === 0) {
+    console.error("No artists found.");
+    process.exit(1);
+  }
+  for (const r of results)
+    console.log(`  ${r.id.padEnd(10)} ${r.name.padEnd(40)} ${r.genre} — ${r.country}`);
+}
 
-  console.log(`Scraping detail for release ID: ${id}`);
+async function handleRelease(args) {
+  const raw = args.release;
+  if (!/^\d+$/.test(raw)) {
+    console.error(`--release requires a numeric ID. To search by name use --releases "<name>".`);
+    process.exit(1);
+  }
+  console.log(`Scraping detail for release ID: ${raw}`);
   let detail;
   try {
-    detail = await scrapeRelease({ id });
+    detail = await scrapeRelease({ id: raw });
   } catch (err) {
     console.error(err.message);
     process.exit(1);
@@ -126,20 +131,27 @@ async function handleRelease(args) {
   output(args, detail, "Release");
 }
 
-async function handlePerson(args) {
-  const id = await resolveId(args.person, {
-    entity: "person",
-    flag: "--persons",
-    searchFn: (q) => searchPersons(q, { limit: args.limit }),
-    listRow: (r) =>
-      `  ${r.id.padEnd(8)} ${r.pseudonym.padEnd(30)} ${r.name ?? ""} — ${r.country ?? ""}`,
-    found: (r) => `${r.pseudonym} (ID ${r.id})`,
-  });
+async function handleReleases(args) {
+  console.log(`Searching for releases: "${args.releases}"…`);
+  const results = await searchReleases(args.releases, { limit: args.limit });
+  if (results.length === 0) {
+    console.error("No releases found.");
+    process.exit(1);
+  }
+  for (const r of results)
+    console.log(`  ${r.id.padEnd(10)} ${r.title.padEnd(40)} ${r.type} — ${r.artistName}`);
+}
 
-  console.log(`Scraping detail for person ID: ${id}`);
+async function handlePerson(args) {
+  const raw = args.person;
+  if (!/^\d+$/.test(raw)) {
+    console.error(`--person requires a numeric ID. To search by name use --persons "<name>".`);
+    process.exit(1);
+  }
+  console.log(`Scraping detail for person ID: ${raw}`);
   let detail;
   try {
-    detail = await scrapePerson({ id });
+    detail = await scrapePerson({ id: raw });
   } catch (err) {
     console.error(err.message);
     process.exit(1);
@@ -147,25 +159,45 @@ async function handlePerson(args) {
   output(args, detail, "Person");
 }
 
-async function handleLabel(args) {
-  const id = await resolveId(args.label, {
-    entity: "label",
-    flag: "--labels",
-    searchFn: (q) => searchLabels(q, { limit: args.limit }),
-    listRow: (r) =>
-      `  ${r.id.padEnd(8)} ${r.name.padEnd(40)} ${r.status ?? ""} — ${r.country ?? ""}`,
-    found: (r) => `${r.name} (ID ${r.id})`,
-  });
+async function handlePersons(args) {
+  console.log(`Searching for persons: "${args.persons}"…`);
+  const results = await searchPersons(args.persons, { limit: args.limit });
+  if (results.length === 0) {
+    console.error("No persons found.");
+    process.exit(1);
+  }
+  for (const r of results)
+    console.log(
+      `  ${r.id.padEnd(10)} ${(r.pseudonym ?? "").padEnd(30)} ${r.name ?? ""} — ${r.country ?? ""}`
+    );
+}
 
-  console.log(`Scraping detail for label ID: ${id}`);
+async function handleLabel(args) {
+  const raw = args.label;
+  if (!/^\d+$/.test(raw)) {
+    console.error(`--label requires a numeric ID. To search by name use --labels "<name>".`);
+    process.exit(1);
+  }
+  console.log(`Scraping detail for label ID: ${raw}`);
   let detail;
   try {
-    detail = await scrapeLabel({ id });
+    detail = await scrapeLabel({ id: raw });
   } catch (err) {
     console.error(err.message);
     process.exit(1);
   }
   output(args, detail, "Label");
+}
+
+async function handleLabels(args) {
+  console.log(`Searching for labels: "${args.labels}"…`);
+  const results = await searchLabels(args.labels, { limit: args.limit });
+  if (results.length === 0) {
+    console.error("No labels found.");
+    process.exit(1);
+  }
+  for (const r of results)
+    console.log(`  ${r.id.padEnd(10)} ${r.name.padEnd(40)} ${r.status ?? ""} — ${r.country ?? ""}`);
 }
 
 async function handleCountry(args) {
@@ -199,9 +231,13 @@ async function main() {
   const args = parseArgs(process.argv);
 
   if (args.artist) return handleArtist(args);
+  if (args.artists) return handleArtists(args);
   if (args.release) return handleRelease(args);
+  if (args.releases) return handleReleases(args);
   if (args.person) return handlePerson(args);
+  if (args.persons) return handlePersons(args);
   if (args.label) return handleLabel(args);
+  if (args.labels) return handleLabels(args);
   if (args.country) return handleCountry(args);
 
   console.error("No command given. See README.md for CLI usage.");

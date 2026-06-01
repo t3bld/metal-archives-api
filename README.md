@@ -34,13 +34,17 @@ Swagger UI available at `http://localhost:3000/docs`.
 node src/index.js --<object> <id|name> [--output <file>] [--limit <n>]
 ```
 
-| Flag | `<id\|name>` | Description |
+| Flag | Argument | Description |
 |---|---|---|
-| `--artist` | required | Scrape an artist |
-| `--releases` | required | Scrape a release |
-| `--persons` | required | Scrape a person |
-| `--labels` | required | Scrape a label |
-| `--country` | `<code\|name>` | Scrape artist list for a country (e.g. `DE`, `Germany`) |
+| `--artist <id>` | numeric ID | Scrape full artist detail |
+| `--artists <name>` | name | Search artists, print list |
+| `--release <id>` | numeric ID | Scrape full release detail |
+| `--releases <name>` | name | Search releases, print list |
+| `--person <id>` | numeric ID | Scrape full person detail |
+| `--persons <name>` | name | Search persons, print list |
+| `--label <id>` | numeric ID | Scrape full label detail |
+| `--labels <name>` | name | Search labels, print list |
+| `--country <code\|name>` | code or name | Scrape all artists for a country (e.g. `DE`, `Germany`) |
 
 | Flag | Description |
 |---|---|
@@ -50,9 +54,10 @@ node src/index.js --<object> <id|name> [--output <file>] [--limit <n>]
 **Examples**
 
 ```bash
-node src/index.js --artist "Arkuum"
+node src/index.js --artists "Arkuum"
 node src/index.js --artist 3540400281 --output arkuum.json
 node src/index.js --releases "Hier ist kein Licht"
+node src/index.js --release 1290383 --output hier.json
 node src/index.js --persons "David Theobald"
 node src/index.js --labels "Nuclear Blast"
 node src/index.js --country DE --limit 50
