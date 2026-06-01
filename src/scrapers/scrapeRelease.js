@@ -27,11 +27,11 @@ export async function scrapeRelease({ id, url } = {}) {
     console.log("  Extracting release info…");
     const info = await extractReleaseInfo(page);
 
-    console.log("  Extracting lineup…");
-    const lineup = await extractLineup(page);
-
     console.log("  Extracting tracklist…");
     const { tracks, totalDuration } = await extractTracks(page);
+
+    console.log("  Extracting lineup…");
+    const lineup = await extractLineup(page);
 
     console.log("  Extracting timestamps…");
     const { lastModifiedAtMetalArchives, createdAtMetalArchives } = await parsePageTimestamps(page);
@@ -104,41 +104,41 @@ async function extractReleaseInfo(page) {
 }
 
 async function extractTracks(page) {
-  // Songs is the default active tab so jQuery ignores clicks on it while active.
-  // Lineup is extracted first, which deactivates Songs — clicking Songs back triggers its AJAX.
-  const songsTab = page.locator("#album_tabs a").filter({ hasText: /^Songs$/ });
-  if ((await songsTab.count()) === 0) return { tracks: [], totalDuration: null };
-  await songsTab.click();
-  await page.waitForSelector("table#table_songs tbody tr", { timeout: 15_000 }).catch(() => null);
-
-  return await page.evaluate(() => {
+  // Songs is the default active tab — the tracklist is already in the initial HTML.
+  // Do not click the tab; just read the DOM as-is.
+  return page.evaluate(() => {
     const tracks = [];
-    const rows = document.querySelectorAll("table#table_songs tbody tr");
+
+    // Track rows have class "odd" or "even" inside #album_songs.
+    // The table has no id; selector targets the row classes directly.
+    const rows = document.querySelectorAll("#album_songs tr.odd, #album_songs tr.even");
 
     for (const row of rows) {
       const cells = [...row.querySelectorAll("td")];
-      if (cells.length < 2) continue;
+      if (cells.length < 3) continue;
 
-      const posText = cells[0]?.textContent?.replace(".", "").trim() ?? "";
+      // First cell: "<a name="7534597" class="anchor"> </a>1."
+      const anchor = cells[0].querySelector("a.anchor");
+      const songId = anchor?.getAttribute("name") ?? null;
+      const posText = cells[0].textContent.replace(".", "").trim();
       const position = parseInt(posText, 10);
       if (isNaN(position)) continue;
 
-      const titleCell = cells[1];
-      // Lyrics toggle may use class "viewLyrics" or an id like "lyricsButton{id}".
-      const hasLyrics =
-        !!row.querySelector("[id^='lyricsButton']") || !!row.querySelector(".viewLyrics");
-      // Strip any inline anchor/span children to isolate the track name.
-      const titleClone = titleCell?.cloneNode(true);
-      titleClone?.querySelectorAll("a, span").forEach((el) => el.remove());
-      const title = (titleClone?.textContent?.trim() || titleCell?.textContent?.trim()) ?? "";
+      // Second cell: title (class="wrapWords")
+      const title = cells[1].textContent.trim();
 
-      const duration = cells[2]?.textContent?.trim() || null;
+      // Third cell: duration (align="right")
+      const duration = cells[2].textContent.trim() || null;
 
-      tracks.push({ position, title, duration, hasLyrics });
+      // Fourth cell: lyrics toggle button present when lyrics exist
+      const hasLyrics = cells.length >= 4 && !!cells[3].querySelector("a, button");
+
+      tracks.push({ position, songId, title, duration, hasLyrics });
     }
 
-    const totalDuration =
-      document.querySelector("table#table_songs tfoot")?.textContent?.trim() || null;
+    // Total duration row: plain <tr> with a <strong> for the time, no odd/even class.
+    const totalEl = document.querySelector("#album_songs tr:not(.odd):not(.even) td strong");
+    const totalDuration = totalEl?.textContent?.trim() || null;
 
     return { tracks, totalDuration };
   });

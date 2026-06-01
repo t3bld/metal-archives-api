@@ -3,6 +3,7 @@ import { LabelSchema } from "./shared.js";
 
 export const TrackSchema = z.object({
   position: z.number().int().positive(),
+  songId: z.string().nullable(),
   title: z.string(),
   duration: z.string().nullable(),
   hasLyrics: z.boolean(),
