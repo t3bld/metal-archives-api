@@ -1,4 +1,4 @@
-import { chromium } from "playwright";
+import { createBrowser } from "./browserSession.js";
 import {
   parseGenres,
   parseLabel,
@@ -13,8 +13,7 @@ import { ArtistSchema } from "./schema/index.js";
 const BASE = process.env.METAL_ARCHIVES_BASE_URL;
 
 export async function scrapeArtist({ id, name = "band" }) {
-  const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext();
+  const { browser, context } = await createBrowser();
   const page = await context.newPage();
 
   try {
@@ -22,7 +21,7 @@ export async function scrapeArtist({ id, name = "band" }) {
     const bandUrl = `${BASE}/bands/${slug}/${id}`;
 
     console.log(`  Navigating to ${bandUrl} …`);
-    await page.goto(bandUrl, { waitUntil: "networkidle", timeout: 60_000 });
+    await page.goto(bandUrl, { waitUntil: "load", timeout: 60_000 });
     const finalUrl = page.url();
 
     const notFound = await page.evaluate(() =>

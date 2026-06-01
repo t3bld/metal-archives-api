@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { chromium } from "playwright";
+import { createBrowser } from "./browserSession.js";
 
 const BASE = process.env.METAL_ARCHIVES_BASE_URL;
 
@@ -199,8 +199,7 @@ export function resolveCountry(value) {
 export async function scrapeBands(countryCode, options = {}) {
   const { delay = 1000, onPage } = options;
 
-  const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext();
+  const { browser, context } = await createBrowser();
   const page = await context.newPage();
 
   try {
@@ -208,7 +207,7 @@ export async function scrapeBands(countryCode, options = {}) {
     // real browser automatically before we reach networkidle.
     console.log("  Launching browser and passing Cloudflare challenge…");
     await page.goto(`${BASE}/browse/country`, {
-      waitUntil: "networkidle",
+      waitUntil: "load",
       timeout: 60_000,
     });
 

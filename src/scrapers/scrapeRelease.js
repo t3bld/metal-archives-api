@@ -1,4 +1,4 @@
-import { chromium } from "playwright";
+import { createBrowser } from "./browserSession.js";
 import { ReleaseDetailSchema } from "./schema/index.js";
 import { parseReleaseDate, parsePageTimestamps, normalizeNA } from "./parsers/index.js";
 
@@ -10,13 +10,12 @@ export async function scrapeRelease({ id, url } = {}) {
   // Use a stable, slug-agnostic URL when an id is available.
   const canonicalUrl = id ? `${BASE}/albums/band/album/${id}` : url;
 
-  const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext();
+  const { browser, context } = await createBrowser();
   const page = await context.newPage();
 
   try {
     console.log(`  Navigating to ${canonicalUrl} …`);
-    await page.goto(canonicalUrl, { waitUntil: "networkidle", timeout: 60_000 });
+    await page.goto(canonicalUrl, { waitUntil: "load", timeout: 60_000 });
     // After redirect the browser lands on the full slug URL — record it.
     const resolvedUrl = page.url();
 

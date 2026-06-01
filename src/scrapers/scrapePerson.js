@@ -1,4 +1,4 @@
-import { chromium } from "playwright";
+import { createBrowser } from "./browserSession.js";
 import { PersonDetailSchema } from "./schema/index.js";
 import { parseBirthDate, parsePageTimestamps, normalizeNA } from "./parsers/index.js";
 
@@ -9,13 +9,12 @@ export async function scrapePerson({ id, url } = {}) {
 
   const canonicalUrl = id ? `${BASE}/artists/artist/${id}` : url;
 
-  const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext();
+  const { browser, context } = await createBrowser();
   const page = await context.newPage();
 
   try {
     console.log(`  Navigating to ${canonicalUrl} …`);
-    await page.goto(canonicalUrl, { waitUntil: "networkidle", timeout: 60_000 });
+    await page.goto(canonicalUrl, { waitUntil: "load", timeout: 60_000 });
     const resolvedUrl = page.url();
 
     const notFound = await page.evaluate(() =>
