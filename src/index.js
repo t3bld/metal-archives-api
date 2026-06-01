@@ -36,25 +36,16 @@ function parseArgs(argv) {
       return true;
     },
     "--releases": (v) => {
-      if (v && /^\d+$/.test(v)) {
-        args.release = v;
-        return true;
-      }
-      return false;
+      args.release = v;
+      return true;
     },
     "--persons": (v) => {
-      if (v && /^\d+$/.test(v)) {
-        args.person = v;
-        return true;
-      }
-      return false;
+      args.person = v;
+      return true;
     },
     "--labels": (v) => {
-      if (v && /^\d+$/.test(v)) {
-        args.label = v;
-        return true;
-      }
-      return false;
+      args.label = v;
+      return true;
     },
   };
 
