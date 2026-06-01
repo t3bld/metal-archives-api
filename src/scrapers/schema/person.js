@@ -9,7 +9,6 @@ export const AlbumAppearanceSchema = z.object({
   year: z.string().nullable(),
   title: z.string().nullable(),
   id: z.string().nullable(),
-  type: z.string().nullable(),
   roles: z.array(z.string()),
 });
 

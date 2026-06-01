@@ -142,19 +142,12 @@ async function extractBandCredits(page) {
         const albumUrl = anchor?.href?.split("#")[0] ?? null;
         const albumId = (albumUrl?.match(/\/([0-9]+)\/?$/) ?? [])[1] ?? null;
         const albumTitle = anchor?.textContent?.trim() ?? null;
-        // "(Single)" / "(EP)" etc. appears after the link text
-        const cellText = albumCell?.textContent?.trim() ?? "";
-        const typeMatch = cellText
-          .replace(albumTitle ?? "", "")
-          .trim()
-          .match(/^\(([^)]+)\)$/);
-        const type = typeMatch ? typeMatch[1] : null;
         const rolesRaw = cells[2]?.textContent?.replace(/\s+/g, " ").trim() ?? "";
         const roles = rolesRaw
           .split(/,\s*/)
           .map((r) => r.trim())
           .filter(Boolean);
-        return { year, title: albumTitle, id: albumId, type, roles };
+        return { year, title: albumTitle, id: albumId, roles };
       });
     }
 
