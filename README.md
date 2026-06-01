@@ -50,12 +50,12 @@ node src/index.js --<object> <id|name> [--output <file>] [--limit <n>]
 **Examples**
 
 ```bash
-node src/index.js --artist "Metallica"
-node src/index.js --artist 125
-node src/index.js --releases "Master of Puppets"
-node src/index.js --persons "James Hetfield"
+node src/index.js --artist "Arkuum"
+node src/index.js --artist 3540400281 --output arkuum.json
+node src/index.js --releases "Hier ist kein Licht"
+node src/index.js --persons "David Theobald"
 node src/index.js --labels "Nuclear Blast"
-node src/index.js --country DE --output bands.json
+node src/index.js --country DE --limit 50
 ```
 
 ## Cloud Proxy Notice
