@@ -27,11 +27,11 @@ export async function scrapeRelease({ id, url } = {}) {
     console.log("  Extracting release info…");
     const info = await extractReleaseInfo(page);
 
-    console.log("  Extracting tracklist…");
-    const { tracks, totalDuration } = await extractTracks(page);
-
     console.log("  Extracting lineup…");
     const lineup = await extractLineup(page);
+
+    console.log("  Extracting tracklist…");
+    const { tracks, totalDuration } = await extractTracks(page);
 
     console.log("  Extracting timestamps…");
     const { lastModifiedAtMetalArchives, createdAtMetalArchives } = await parsePageTimestamps(page);
@@ -104,15 +104,12 @@ async function extractReleaseInfo(page) {
 }
 
 async function extractTracks(page) {
-  // Songs is the default active tab on album pages — content is present on initial load.
-  // Clicking when already active triggers a re-AJAX-load that can race with the evaluate.
-  const alreadyLoaded = (await page.locator("table#table_songs tbody tr").count()) > 0;
-  if (!alreadyLoaded) {
-    const tabHandle = await page.$("#album_tabs a[href*='tracklist']");
-    if (!tabHandle) return { tracks: [], totalDuration: null };
-    await page.evaluate((el) => el.click(), tabHandle);
-    await page.waitForSelector("table#table_songs tbody tr", { timeout: 12_000 }).catch(() => null);
-  }
+  // Songs is the default active tab so jQuery ignores clicks on it while active.
+  // Lineup is extracted first, which deactivates Songs — clicking Songs back triggers its AJAX.
+  const songsTab = page.locator("#album_tabs a").filter({ hasText: /^Songs$/ });
+  if ((await songsTab.count()) === 0) return { tracks: [], totalDuration: null };
+  await songsTab.click();
+  await page.waitForSelector("table#table_songs tbody tr", { timeout: 15_000 }).catch(() => null);
 
   return await page.evaluate(() => {
     const tracks = [];
