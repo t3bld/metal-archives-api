@@ -35,13 +35,24 @@ export async function closeBrowserSession() {
   }
 }
 
-// Fetch via page.goto() so all requests route through BrightData's network.
-// BrightData CDP forbids overriding Accept / X-Requested-With — no custom headers.
+// When BrightData is enabled: page.goto() routes the request through BrightData's
+// residential network — each navigation costs money, so it only runs in cloud mode.
+// When disabled: page.evaluate(fetch) runs in the local Chromium context and
+// automatically sends cf_clearance cookies obtained during the warm-up navigation.
 export async function browserFetch(url) {
   const p = await ensureSession();
-  const response = await p.goto(url.toString(), { waitUntil: "load", timeout: 60_000 });
-  if (!response.ok()) throw new Error(`HTTP ${response.status()} ${response.statusText()}`);
-  return response.json();
+  if (BRIGHTDATA_ENABLED) {
+    const response = await p.goto(url.toString(), { waitUntil: "load", timeout: 60_000 });
+    if (!response.ok()) throw new Error(`HTTP ${response.status()} ${response.statusText()}`);
+    return response.json();
+  }
+  return p.evaluate(async (fetchUrl) => {
+    const res = await fetch(fetchUrl, {
+      headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    return res.json();
+  }, url.toString());
 }
 
 // Creates a browser + context for use by individual page scrapers.
