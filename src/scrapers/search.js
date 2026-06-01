@@ -43,7 +43,8 @@ export async function searchArtists(query, { limit = 200 } = {}) {
         country: country?.trim() ?? null,
       };
     })
-    .filter((r) => r.id && r.name);
+    .filter((r) => r.id && r.name)
+    .slice(0, limit);
 }
 
 /**
@@ -80,7 +81,8 @@ export async function searchReleases(query, { limit = 200 } = {}) {
         type: type?.trim() ?? null,
       };
     })
-    .filter((r) => r.id && r.title);
+    .filter((r) => r.id && r.title)
+    .slice(0, limit);
 }
 
 /**
@@ -115,7 +117,8 @@ export async function searchPersons(query, { limit = 200 } = {}) {
         country: country?.trim() || null,
       };
     })
-    .filter((r) => r.id && r.pseudonym);
+    .filter((r) => r.id && r.pseudonym)
+    .slice(0, limit);
 }
 
 /**
@@ -145,5 +148,6 @@ export async function searchLabels(query, { limit = 200 } = {}) {
       const id = href?.match(/\/(\d+)\s*$/)?.[1] ?? null;
       return { id, name, country: country?.trim() || null, status: status?.trim() || null };
     })
-    .filter((r) => r.id && r.name);
+    .filter((r) => r.id && r.name)
+    .slice(0, limit);
 }
