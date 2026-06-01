@@ -15,8 +15,6 @@ function parseArgs(argv) {
     person: null,
     label: null,
     output: null,
-    delay: 1,
-    limit: 50,
   };
 
   const flags = {
@@ -30,14 +28,6 @@ function parseArgs(argv) {
     },
     "--output": (v) => {
       args.output = v;
-      return true;
-    },
-    "--delay": (v) => {
-      args.delay = parseFloat(v);
-      return true;
-    },
-    "--limit": (v) => {
-      args.limit = parseInt(v, 10);
       return true;
     },
     "--releases": (v) => {
@@ -193,7 +183,6 @@ async function handleCountry(args) {
 
   console.log(`Scraping bands for: ${name} (${code})`);
   const bands = await scrapeBands(code, {
-    delay: args.delay * 1000,
     onPage: (start, total) => {
       const end = start + 500;
       const label = total ? `/ ${total}` : "";
