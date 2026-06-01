@@ -3,14 +3,9 @@ import { parseGenres } from "./parsers/index.js";
 
 const BASE = process.env.METAL_ARCHIVES_BASE_URL;
 
-const JSON_HEADERS = {
-  Accept: "application/json",
-  "X-Requested-With": "XMLHttpRequest",
-};
-
 async function metalArchivesFetch(url) {
   try {
-    return await browserFetch(url, JSON_HEADERS);
+    return await browserFetch(url);
   } catch (err) {
     throw new Error(`Metal Archives search failed: ${err.message}`);
   }

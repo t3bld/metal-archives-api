@@ -35,14 +35,11 @@ export async function closeBrowserSession() {
   }
 }
 
-// Fetch using page.goto() so the request is routed through BrightData's network
-// (not Railway's IP). Locally, cf_clearance cookies from the warm-up are retained
-// in the context and sent automatically on navigation.
-export async function browserFetch(url, headers = {}) {
+// Fetch via page.goto() so all requests route through BrightData's network.
+// BrightData CDP forbids overriding Accept / X-Requested-With — no custom headers.
+export async function browserFetch(url) {
   const p = await ensureSession();
-  if (Object.keys(headers).length) await p.setExtraHTTPHeaders(headers);
   const response = await p.goto(url.toString(), { waitUntil: "load", timeout: 60_000 });
-  if (Object.keys(headers).length) await p.setExtraHTTPHeaders({});
   if (!response.ok()) throw new Error(`HTTP ${response.status()} ${response.statusText()}`);
   return response.json();
 }
