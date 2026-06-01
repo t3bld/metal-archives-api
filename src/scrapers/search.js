@@ -93,17 +93,19 @@ export async function searchReleases(query, { limit = 200 } = {}) {
  * @returns {Promise<PersonSearchResult[]>}
  */
 export async function searchPersons(query, { limit = 200 } = {}) {
-  const url = new URL(`${BASE}/search/ajax-advanced/searching/artists/`);
-  url.searchParams.set("artistName", query);
+  // MA's person search uses /search/ajax-artist-search/ (not the advanced bands endpoint).
+  // field="" searches both pseudonym and real name simultaneously.
+  const url = new URL(`${BASE}/search/ajax-artist-search/`);
+  url.searchParams.set("field", "");
+  url.searchParams.set("query", query);
   url.searchParams.set("sEcho", "1");
-  url.searchParams.set("iColumns", "4");
   url.searchParams.set("iDisplayStart", "0");
-  url.searchParams.set("iDisplayLength", String(limit));
+  url.searchParams.set("iDisplayLength", String(Math.max(limit, 200)));
 
   const json = await metalArchivesFetch(url);
 
   // Row: [personCell, realName, country, bandsCell]
-  // personCell: <a href=".../artists/Name/ID">Pseudonym</a>
+  // personCell: <a href=".../artists/Name/ID">Pseudonym</a> (a.k.a. ...)
   return (json.aaData ?? [])
     .map(([personCell, realName, country]) => {
       const match = personCell.match(/href="([^"]+)"[^>]*>([^<]+)</);
