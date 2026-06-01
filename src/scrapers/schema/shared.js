@@ -30,5 +30,4 @@ export const ParsedGenresSchema = z.array(GenrePeriodSchema);
 export const LabelSchema = z.object({
   id: z.string().nullable(),
   name: z.string(),
-  url: z.string().nullable(),
 });

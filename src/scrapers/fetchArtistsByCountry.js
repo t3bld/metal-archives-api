@@ -267,7 +267,7 @@ function parseRow(row) {
   const bandIdMatch = BAND_ID_RE.exec(website);
   const id = bandIdMatch ? bandIdMatch[1] : "";
 
-  return { name, id, genre: row[1], location: row[2], status, url: website };
+  return { name, id, genre: row[1], location: row[2], status };
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

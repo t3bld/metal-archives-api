@@ -8,7 +8,6 @@ const YearsActiveSchema = z.object({
 export const AlbumAppearanceSchema = z.object({
   year: z.string().nullable(),
   title: z.string().nullable(),
-  url: z.string().nullable(),
   id: z.string().nullable(),
   type: z.string().nullable(),
   roles: z.array(z.string()),
@@ -17,7 +16,6 @@ export const AlbumAppearanceSchema = z.object({
 export const ArtistCreditSchema = z.object({
   type: z.enum(["active", "past", "guest", "misc"]),
   name: z.string(),
-  url: z.string().nullable(),
   id: z.string().nullable(),
   roles: z.array(z.string()),
   yearsActive: z.array(YearsActiveSchema),
@@ -25,7 +23,6 @@ export const ArtistCreditSchema = z.object({
 });
 
 export const PersonDetailSchema = z.object({
-  url: z.string(),
   pseudonym: z.string().nullable(),
   name: z.string().nullable(),
   age: z.number().int().nullable(),

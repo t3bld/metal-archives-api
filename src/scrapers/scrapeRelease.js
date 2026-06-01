@@ -37,7 +37,6 @@ export async function scrapeRelease({ id, url } = {}) {
     const { lastModifiedAtMetalArchives, createdAtMetalArchives } = await parsePageTimestamps(page);
 
     const release = normalizeNA({
-      url: resolvedUrl,
       ...info,
       releaseDate: parseReleaseDate(info.releaseDate),
       totalDuration,
@@ -86,7 +85,6 @@ async function extractReleaseInfo(page) {
       artist: bandLink
         ? {
             name: bandLink.textContent?.trim() ?? null,
-            url: bandLink.href ?? null,
             id: (bandLink.href?.match(/\/([0-9]+)\/?$/) ?? [])[1] ?? null,
           }
         : null,
@@ -97,7 +95,6 @@ async function extractReleaseInfo(page) {
       label: labelEntry
         ? {
             name: labelEntry.text,
-            url: labelEntry.href?.split("#")[0] ?? null,
             id: (labelEntry.href?.split("#")[0]?.match(/\/([0-9]+)\/?$/) ?? [])[1] ?? null,
           }
         : null,
@@ -107,12 +104,15 @@ async function extractReleaseInfo(page) {
 }
 
 async function extractTracks(page) {
-  const songsTab = page.locator("#album_tabs a").filter({ hasText: /^Songs$/ });
-  if ((await songsTab.count()) === 0) return { tracks: [], totalDuration: null };
-
-  await songsTab.click();
-  // Wait for the tracklist panel to receive its AJAX content.
-  await page.waitForSelector("table#table_songs tbody tr", { timeout: 12_000 }).catch(() => null);
+  // Songs is the default active tab on album pages — content is present on initial load.
+  // Clicking when already active triggers a re-AJAX-load that can race with the evaluate.
+  const alreadyLoaded = (await page.locator("table#table_songs tbody tr").count()) > 0;
+  if (!alreadyLoaded) {
+    const tabHandle = await page.$("#album_tabs a[href*='tracklist']");
+    if (!tabHandle) return { tracks: [], totalDuration: null };
+    await page.evaluate((el) => el.click(), tabHandle);
+    await page.waitForSelector("table#table_songs tbody tr", { timeout: 12_000 }).catch(() => null);
+  }
 
   return await page.evaluate(() => {
     const tracks = [];
@@ -200,7 +200,7 @@ async function extractLineup(page) {
           .map((r) => r.trim())
           .filter(Boolean);
 
-        performers.push({ name, url, id, roles, involvement });
+        performers.push({ name, id, roles, involvement });
       }
       return performers;
     }

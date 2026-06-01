@@ -33,7 +33,6 @@ export async function scrapePerson({ id, url } = {}) {
     const { lastModifiedAtMetalArchives, createdAtMetalArchives } = await parsePageTimestamps(page);
 
     const person = normalizeNA({
-      url: resolvedUrl,
       ...info,
       artists,
       lastModifiedAtMetalArchives,
@@ -155,7 +154,7 @@ async function extractBandCredits(page) {
           .split(/,\s*/)
           .map((r) => r.trim())
           .filter(Boolean);
-        return { year, title: albumTitle, url: albumUrl, id: albumId, type, roles };
+        return { year, title: albumTitle, id: albumId, type, roles };
       });
     }
 
@@ -189,7 +188,6 @@ async function extractBandCredits(page) {
           {
             type,
             name,
-            url,
             id,
             roles,
             yearsActive: parseYearsActive(yearsStr),

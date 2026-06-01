@@ -44,7 +44,7 @@ node src/index.js --<object> <id|name> [--output <file>] [--limit <n>]
 | `--persons <name>` | name | Search persons, print list |
 | `--label <id>` | numeric ID | Scrape full label detail |
 | `--labels <name>` | name | Search labels, print list |
-| `--country <code\|name>` | code or name | Scrape all artists for a country (e.g. `DE`, `Germany`) |
+| `--country <code\|name>` | code or name | Scrape all artists for a country e.g. `DE`, `Germany` |
 
 | Flag | Description |
 |---|---|

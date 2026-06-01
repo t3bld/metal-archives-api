@@ -13,5 +13,5 @@ export function parseLabel(name, url) {
   // Label URLs end with the numeric ID: /labels/Name/12345
   const cleanUrl = url ? url.split("#")[0] : null;
   const id = cleanUrl ? ((cleanUrl.match(/\/([0-9]+)\/?$/) ?? [])[1] ?? null) : null;
-  return { id, name: trimmed, url: cleanUrl ?? null };
+  return { id, name: trimmed };
 }

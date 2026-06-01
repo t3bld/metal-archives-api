@@ -49,7 +49,6 @@ export async function scrapeArtist({ id, name = "band" }) {
 
     const artist = normalizeNA({
       id,
-      url: finalUrl,
       ...info,
       discography,
       members,
@@ -161,7 +160,6 @@ async function extractDiscography(page) {
         return {
           id,
           title: anchor?.textContent?.trim() ?? cells[0]?.textContent?.trim() ?? null,
-          url,
         };
       })
       .filter((r) => r.title);
@@ -221,7 +219,6 @@ async function extractMembers(page) {
         const member = {
           status: type,
           name: memberName,
-          url: anchor?.href ?? null,
           id: anchor ? ((anchor.href.match(/\/([0-9]+)\/?$/) ?? [])[1] ?? null) : null,
           roles: roleStr
             ? roleStr
@@ -259,14 +256,12 @@ async function extractMembers(page) {
                       activities.push({
                         name: exMatch[1].trim(),
                         id: null,
-                        url: null,
                         status: "past",
                       });
                     } else {
                       activities.push({
                         name: part,
                         id: null,
-                        url: null,
                         status: isEx ? "past" : "active",
                       });
                       isEx = false;
@@ -279,7 +274,6 @@ async function extractMembers(page) {
                 activities.push({
                   name: node.textContent.trim(),
                   id,
-                  url: href,
                   status: isEx ? "past" : "active",
                 });
                 isEx = false;
@@ -381,9 +375,9 @@ async function extractSimilarArtists(page, id) {
       !r.url?.includes("showMoreSimilar") &&
       !r.url?.includes("/content/help")
   );
-  return filtered.map(({ genre, ...r }) => ({
+  return filtered.map(({ genre, url, ...r }) => ({
     ...r,
-    id: r.url ? ((r.url.match(/\/([0-9]+)\/?$/) ?? [])[1] ?? null) : null,
+    id: url ? ((url.match(/\/([0-9]+)\/?$/) ?? [])[1] ?? null) : null,
     genres: genre ? parseGenres(genre) : null,
   }));
 }

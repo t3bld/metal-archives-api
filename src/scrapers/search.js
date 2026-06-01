@@ -77,7 +77,6 @@ export async function searchReleases(query, { limit = 200 } = {}) {
         artist: {
           id: artistMatch?.[2] ?? null,
           name: artistMatch?.[3]?.trim() ?? null,
-          url: artistMatch?.[1] ?? null,
         },
         type: type?.trim() ?? null,
       };

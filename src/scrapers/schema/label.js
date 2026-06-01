@@ -2,17 +2,16 @@ import { z } from "zod";
 
 export const LabelRosterEntrySchema = z.object({
   bandName: z.string(),
-  bandUrl: z.string().nullable(),
+  bandId: z.string().nullable(),
   section: z.string(),
 });
 
 export const SubLabelSchema = z.object({
   name: z.string(),
-  url: z.string().nullable(),
+  id: z.string().nullable(),
 });
 
 export const LabelDetailSchema = z.object({
-  url: z.string(),
   name: z.string().nullable(),
   address: z.string().nullable(),
   country: z.string().nullable(),

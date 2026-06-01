@@ -10,18 +10,14 @@ export const TrackSchema = z.object({
 
 export const ReleasePerformerSchema = z.object({
   name: z.string(),
-  url: z.string().nullable(),
   id: z.string().nullable(),
   roles: z.array(z.string()),
   involvement: z.enum(["member", "guest", "staff"]),
 });
 
 export const ReleaseDetailSchema = z.object({
-  url: z.string(),
   title: z.string().nullable(),
-  artist: z
-    .object({ name: z.string().nullable(), url: z.string().nullable(), id: z.string().nullable() })
-    .nullable(),
+  artist: z.object({ name: z.string().nullable(), id: z.string().nullable() }).nullable(),
   type: z.string().nullable(),
   releaseDate: z.string().nullable(),
   catalogId: z.string().nullable(),

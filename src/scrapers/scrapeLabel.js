@@ -33,7 +33,6 @@ export async function scrapeLabel({ id, url } = {}) {
     const { lastModifiedAtMetalArchives, createdAtMetalArchives } = await parsePageTimestamps(page);
 
     const label = normalizeNA({
-      url: resolvedUrl,
       ...info,
       roster,
       lastModifiedAtMetalArchives,
@@ -79,7 +78,7 @@ async function extractLabelInfo(page) {
     const subLabels = subLabelDd
       ? [...subLabelDd.querySelectorAll("a")].map((a) => ({
           name: a.textContent.trim(),
-          url: a.href,
+          id: (a.href.match(/\/([0-9]+)\/?$/) ?? [])[1] ?? null,
         }))
       : [];
 
@@ -121,7 +120,11 @@ async function extractRoster(page) {
         .map((tr) => {
           const anchor = tr.querySelector("td a");
           return anchor
-            ? { bandName: anchor.textContent.trim(), bandUrl: anchor.href, section: "current" }
+            ? {
+                bandName: anchor.textContent.trim(),
+                bandId: (anchor.href.match(/\/([0-9]+)\/?$/) ?? [])[1] ?? null,
+                section: "current",
+              }
             : null;
         })
         .filter(Boolean)
@@ -141,7 +144,11 @@ async function extractRoster(page) {
         .map((tr) => {
           const anchor = tr.querySelector("td a");
           return anchor
-            ? { bandName: anchor.textContent.trim(), bandUrl: anchor.href, section: "past" }
+            ? {
+                bandName: anchor.textContent.trim(),
+                bandId: (anchor.href.match(/\/([0-9]+)\/?$/) ?? [])[1] ?? null,
+                section: "past",
+              }
             : null;
         })
         .filter(Boolean)
