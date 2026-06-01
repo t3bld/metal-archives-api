@@ -55,7 +55,7 @@ export async function scrapePerson({ id, url } = {}) {
 
 async function extractArtistInfo(page) {
   return page.evaluate(() => {
-    const name = document.querySelector("h1.artist_name")?.textContent?.trim() ?? null;
+    const name = document.querySelector("h1.band_member_name")?.textContent?.trim() ?? null;
 
     const fields = {};
     const links = {};
@@ -174,8 +174,10 @@ async function extractBandCredits(page) {
             .querySelector("p.member_in_band_role")
             ?.textContent?.replace(/\u00a0/g, " ")
             .trim() ?? "";
-        const roleMatch = roleRaw.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
-        const roleStr = roleMatch ? roleMatch[1].trim() : roleRaw;
+        // Strip "As Real Name:" prefix (e.g. 'As David "Arkas":') before parsing roles
+        const cleanRoleRaw = roleRaw.replace(/^As\s+[^:\n]+:\s*/i, "").trim();
+        const roleMatch = cleanRoleRaw.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+        const roleStr = roleMatch ? roleMatch[1].trim() : cleanRoleRaw;
         const yearsStr = roleMatch ? roleMatch[2].trim() : null;
         const roles = roleStr
           ? roleStr
