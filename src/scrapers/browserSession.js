@@ -32,17 +32,13 @@ export async function closeBrowserSession() {
   }
 }
 
-// Execute fetch from inside the browser so Cloudflare cookies are sent automatically.
+// Fetch using Playwright's request context so Cloudflare cookies are sent
+// automatically without relying on page.evaluate (which is sandboxed in CDP mode).
 export async function browserFetch(url, headers = {}) {
   const p = await ensureSession();
-  return p.evaluate(
-    async ({ fetchUrl, fetchHeaders }) => {
-      const res = await fetch(fetchUrl, { headers: fetchHeaders });
-      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-      return res.json();
-    },
-    { fetchUrl: url.toString(), fetchHeaders: headers }
-  );
+  const response = await p.context().request.get(url.toString(), { headers });
+  if (!response.ok()) throw new Error(`HTTP ${response.status()} ${response.statusText()}`);
+  return response.json();
 }
 
 // Creates a browser + context for use by individual page scrapers.
