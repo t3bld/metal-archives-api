@@ -104,8 +104,12 @@ async function extractReleaseInfo(page) {
 }
 
 async function extractTracks(page) {
-  // Songs is the default active tab — the tracklist is already in the initial HTML.
-  // Do not click the tab; just read the DOM as-is.
+  // Songs is the default active tab. In a real browser, jQuery UI AJAX-loads the tab
+  // content on init (even for the default tab), so we must wait for the rows to appear.
+  await page
+    .waitForSelector("#album_songs tr.odd, #album_songs tr.even", { timeout: 15_000 })
+    .catch(() => null);
+
   return page.evaluate(() => {
     const tracks = [];
 
