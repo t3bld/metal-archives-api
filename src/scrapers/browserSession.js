@@ -12,15 +12,18 @@ const LOCAL_UA =
 let sharedBrowser = null;
 let sharedPage = null;
 
-// Navigate to a real browse page so Cloudflare issues cf_clearance before any
-// AJAX calls are made. The browse/bands path is known to load cleanly.
+// Initialise the shared page. When using BrightData, no warm-up is needed —
+// BrightData handles Cloudflare transparently at the infrastructure level.
+// Locally, we warm up on browse/bands first so Cloudflare issues cf_clearance.
 async function ensureSession() {
   if (sharedPage) return sharedPage;
   const { browser, context } = await createBrowser();
   sharedBrowser = browser;
   sharedPage = await context.newPage();
-  await sharedPage.goto(`${BASE}/browse/bands`, { waitUntil: "load", timeout: 120_000 });
-  if (!BRIGHTDATA_ENABLED) await sharedPage.waitForTimeout(3000);
+  if (!BRIGHTDATA_ENABLED) {
+    await sharedPage.goto(`${BASE}/browse/bands`, { waitUntil: "load", timeout: 120_000 });
+    await sharedPage.waitForTimeout(3000);
+  }
   return sharedPage;
 }
 
@@ -32,11 +35,14 @@ export async function closeBrowserSession() {
   }
 }
 
-// Fetch using Playwright's request context so Cloudflare cookies are sent
-// automatically without relying on page.evaluate (which is sandboxed in CDP mode).
+// Fetch using page.goto() so the request is routed through BrightData's network
+// (not Railway's IP). Locally, cf_clearance cookies from the warm-up are retained
+// in the context and sent automatically on navigation.
 export async function browserFetch(url, headers = {}) {
   const p = await ensureSession();
-  const response = await p.context().request.get(url.toString(), { headers });
+  if (Object.keys(headers).length) await p.setExtraHTTPHeaders(headers);
+  const response = await p.goto(url.toString(), { waitUntil: "load", timeout: 60_000 });
+  if (Object.keys(headers).length) await p.setExtraHTTPHeaders({});
   if (!response.ok()) throw new Error(`HTTP ${response.status()} ${response.statusText()}`);
   return response.json();
 }
