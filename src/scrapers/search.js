@@ -69,14 +69,15 @@ export async function searchReleases(query, { limit = 200 } = {}) {
   // releaseCell: <a href=".../albums/Name/Title/ReleaseId">Title</a>
   return (json.aaData ?? [])
     .map(([artistCell, releaseCell, type]) => {
-      const artistMatch = artistCell.match(/href="[^"]+\/(\d+)"[^>]*>([^<]+)</);
+      const artistMatch = artistCell.match(/href="([^"]+\/(\d+))"[^>]*>([^<]+)</);
       const releaseMatch = releaseCell.match(/href="[^"]+\/(\d+)"[^>]*>([^<]+)</);
       return {
         id: releaseMatch?.[1] ?? null,
         title: releaseMatch?.[2]?.trim() ?? null,
         artist: {
-          id: artistMatch?.[1] ?? null,
-          name: artistMatch?.[2]?.trim() ?? null,
+          id: artistMatch?.[2] ?? null,
+          name: artistMatch?.[3]?.trim() ?? null,
+          url: artistMatch?.[1] ?? null,
         },
         type: type?.trim() ?? null,
       };
