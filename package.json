@@ -18,7 +18,6 @@
     "@hono/zod-openapi": "^1.4.0",
     "dotenv": "^17.4.2",
     "hono": "^4.12.23",
-    "neo4j-driver": "^6.0.1",
     "playwright": "^1.60.0",
     "zod": "^4.4.3"
   },

@@ -6,17 +6,6 @@ import { searchArtists, searchReleases, searchPersons, searchLabels } from "./sc
 import { scrapeRelease } from "./scrapers/scrapeRelease.js";
 import { scrapePerson } from "./scrapers/scrapePerson.js";
 import { scrapeLabel } from "./scrapers/scrapeLabel.js";
-import {
-  ensureConstraints,
-  importArtist,
-  importRelease,
-  getPendingReleases,
-  importPerson,
-  getPendingPersons,
-  importLabel,
-  getPendingLabels,
-  closeDriver,
-} from "./model/index.js";
 
 function parseArgs(argv) {
   const args = {
@@ -28,10 +17,6 @@ function parseArgs(argv) {
     output: null,
     delay: 1,
     limit: 50,
-    neo4j: false,
-    releases: false,
-    persons: false,
-    labels: false,
   };
 
   const flags = {
@@ -55,16 +40,11 @@ function parseArgs(argv) {
       args.limit = parseInt(v, 10);
       return true;
     },
-    "--neo4j": () => {
-      args.neo4j = true;
-      return false;
-    },
     "--releases": (v) => {
       if (v && /^\d+$/.test(v)) {
         args.release = v;
         return true;
       }
-      args.releases = true;
       return false;
     },
     "--persons": (v) => {
@@ -72,7 +52,6 @@ function parseArgs(argv) {
         args.person = v;
         return true;
       }
-      args.persons = true;
       return false;
     },
     "--labels": (v) => {
@@ -80,7 +59,6 @@ function parseArgs(argv) {
         args.label = v;
         return true;
       }
-      args.labels = true;
       return false;
     },
   };
@@ -113,52 +91,13 @@ async function resolveId(raw, { entity, flag, searchFn, listRow, found }) {
   return results[0].id;
 }
 
-async function persistAndOutput(args, detail, { importFn, label }) {
-  if (args.neo4j) {
-    console.log("  Persisting to Neo4j…");
-    await ensureConstraints();
-    await importFn(detail);
-    console.log(`  [neo4j] ${label} saved.`);
-    await closeDriver();
-  }
+function output(args, detail, label) {
   if (args.output) {
     fs.writeFileSync(args.output, JSON.stringify(detail, null, 2), "utf8");
     console.log(`Saved ${label.toLowerCase()} detail to '${args.output}'.`);
-  } else if (!args.neo4j) {
+  } else {
     console.log(JSON.stringify(detail, null, 2));
   }
-}
-
-async function runQueue(args, { entity, getPendingFn, scrapeFn, importFn, displayName }) {
-  console.log(`Fetching pending ${entity} URLs from Neo4j…`);
-  await ensureConstraints();
-  const pending = await getPendingFn(args.limit);
-
-  if (pending.length === 0) {
-    console.log(`  No pending ${entity}s found. Run --artist --neo4j first to populate stubs.`);
-    await closeDriver();
-    return;
-  }
-
-  console.log(`  Found ${pending.length} pending ${entity}(s). Scraping…`);
-  let ok = 0;
-  let failed = 0;
-
-  for (const item of pending) {
-    try {
-      const detail = await scrapeFn({ id: item.id, url: item.url });
-      await importFn(detail);
-      console.log(`  OK  ${displayName(detail, item)}`);
-      ok++;
-    } catch (err) {
-      console.error(`  FAIL ${item.url ?? item.id}: ${err.message}`);
-      failed++;
-    }
-    if (args.delay > 0) await new Promise((r) => setTimeout(r, args.delay * 1_000));
-  }
-
-  console.log(`Done. ${ok} OK | ${failed} failed (of ${pending.length})`);
-  await closeDriver();
 }
 
 async function handleArtist(args) {
@@ -178,7 +117,7 @@ async function handleArtist(args) {
     console.error(err.message);
     process.exit(1);
   }
-  await persistAndOutput(args, detail, { importFn: importArtist, label: "Artist" });
+  output(args, detail, "Artist");
 }
 
 async function handleRelease(args) {
@@ -198,7 +137,7 @@ async function handleRelease(args) {
     console.error(err.message);
     process.exit(1);
   }
-  await persistAndOutput(args, detail, { importFn: importRelease, label: "Release" });
+  output(args, detail, "Release");
 }
 
 async function handlePerson(args) {
@@ -219,7 +158,7 @@ async function handlePerson(args) {
     console.error(err.message);
     process.exit(1);
   }
-  await persistAndOutput(args, detail, { importFn: importPerson, label: "Person" });
+  output(args, detail, "Person");
 }
 
 async function handleLabel(args) {
@@ -240,37 +179,7 @@ async function handleLabel(args) {
     console.error(err.message);
     process.exit(1);
   }
-  await persistAndOutput(args, detail, { importFn: importLabel, label: "Label" });
-}
-
-async function handleReleasesQueue(args) {
-  await runQueue(args, {
-    entity: "release",
-    getPendingFn: getPendingReleases,
-    scrapeFn: scrapeRelease,
-    importFn: importRelease,
-    displayName: (d, item) => d.title ?? item.url,
-  });
-}
-
-async function handlePersonsQueue(args) {
-  await runQueue(args, {
-    entity: "person",
-    getPendingFn: getPendingPersons,
-    scrapeFn: scrapePerson,
-    importFn: importPerson,
-    displayName: (d, item) => d.pseudonym ?? item.url,
-  });
-}
-
-async function handleLabelsQueue(args) {
-  await runQueue(args, {
-    entity: "label",
-    getPendingFn: getPendingLabels,
-    scrapeFn: scrapeLabel,
-    importFn: importLabel,
-    displayName: (d, item) => d.name ?? item.url,
-  });
+  output(args, detail, "Label");
 }
 
 async function handleCountry(args) {
@@ -308,9 +217,6 @@ async function main() {
   if (args.release) return handleRelease(args);
   if (args.person) return handlePerson(args);
   if (args.label) return handleLabel(args);
-  if (args.releases) return handleReleasesQueue(args);
-  if (args.persons) return handlePersonsQueue(args);
-  if (args.labels) return handleLabelsQueue(args);
   if (args.country) return handleCountry(args);
 
   console.error("No command given. See README.md for CLI usage.");

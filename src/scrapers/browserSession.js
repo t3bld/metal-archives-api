@@ -12,9 +12,8 @@ const LOCAL_UA =
 let sharedBrowser = null;
 let sharedPage = null;
 
-// Initialise the shared page. When using BrightData, no warm-up is needed —
-// BrightData handles Cloudflare transparently at the infrastructure level.
-// Locally, we warm up on browse/bands first so Cloudflare issues cf_clearance.
+// Initialise the shared page. Locally, navigate to a real page first so the
+// browser session is fully established before making AJAX requests.
 async function ensureSession() {
   if (sharedPage) return sharedPage;
   const { browser, context } = await createBrowser();
@@ -37,8 +36,8 @@ export async function closeBrowserSession() {
 
 // When BrightData is enabled: page.goto() routes the request through BrightData's
 // residential network — each navigation costs money, so it only runs in cloud mode.
-// When disabled: page.evaluate(fetch) runs in the local Chromium context and
-// automatically sends cf_clearance cookies obtained during the warm-up navigation.
+// When disabled: page.evaluate(fetch) runs inside the local Chromium context,
+// reusing the session established by the warm-up navigation.
 export async function browserFetch(url) {
   const p = await ensureSession();
   if (BRIGHTDATA_ENABLED) {
@@ -56,9 +55,8 @@ export async function browserFetch(url) {
 }
 
 // Creates a browser + context for use by individual page scrapers.
-// When BRIGHTDATA_WS_ENDPOINT is set, connects to BrightData's Scraping Browser
-// via CDP — Cloudflare is handled transparently at the infrastructure level.
-// Without it, launches a local headless Chromium (dev only).
+// In cloud mode, connects to BrightData's Browser API via CDP.
+// In local mode, launches a headless Chromium directly.
 export async function createBrowser() {
   if (BRIGHTDATA_ENABLED && BD_WS) {
     const browser = await chromium.connectOverCDP(BD_WS);
