@@ -137,14 +137,14 @@ async function extractBasicInfo(page) {
 async function extractDiscography(page) {
   const tabHandle = await page.$('a[href="#band_tab_discography"]');
   if (tabHandle) {
-    await tabHandle.click();
+    await page.evaluate((el) => el.click(), tabHandle);
     // Click the "All" sub-tab which loads all release types via AJAX
     await page
       .waitForSelector('a[href*="/band/discography/"][href*="/tab/all"]', { timeout: 10_000 })
       .catch(() => {});
     const allTab = await page.$('a[href*="/band/discography/"][href*="/tab/all"]');
     if (allTab) {
-      await allTab.click();
+      await page.evaluate((el) => el.click(), allTab);
     }
     await page
       .waitForSelector("#band_tab_discography table tbody tr", { timeout: 15_000 })
@@ -171,7 +171,7 @@ async function extractDiscography(page) {
 async function extractMembers(page) {
   const tabHandle = await page.$('a[href="#band_tab_members"]');
   if (tabHandle) {
-    await tabHandle.click();
+    await page.evaluate((el) => el.click(), tabHandle);
     await page.waitForSelector(".lineupRow", { timeout: 15_000 }).catch(() => {});
   }
 
