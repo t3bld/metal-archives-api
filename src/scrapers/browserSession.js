@@ -2,7 +2,7 @@ import { chromium } from "playwright";
 
 const BASE = process.env.METAL_ARCHIVES_BASE_URL;
 const BD_WS = process.env.BRIGHTDATA_WS_ENDPOINT;
-const USE_BD = process.env.USE_BRIGHTDATA === "true";
+const BRIGHTDATA_ENABLED = process.env.BRIGHTDATA_ENABLED === "true";
 
 const LOCAL_ARGS = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"];
 const LOCAL_UA =
@@ -20,7 +20,7 @@ async function ensureSession() {
   sharedBrowser = browser;
   sharedPage = await context.newPage();
   await sharedPage.goto(`${BASE}/browse/bands`, { waitUntil: "load", timeout: 120_000 });
-  if (!USE_BD) await sharedPage.waitForTimeout(3000);
+  if (!BRIGHTDATA_ENABLED) await sharedPage.waitForTimeout(3000);
   return sharedPage;
 }
 
@@ -50,7 +50,7 @@ export async function browserFetch(url, headers = {}) {
 // via CDP — Cloudflare is handled transparently at the infrastructure level.
 // Without it, launches a local headless Chromium (dev only).
 export async function createBrowser() {
-  if (USE_BD && BD_WS) {
+  if (BRIGHTDATA_ENABLED && BD_WS) {
     const browser = await chromium.connectOverCDP(BD_WS);
     const context = await browser.newContext();
     return { browser, context };
