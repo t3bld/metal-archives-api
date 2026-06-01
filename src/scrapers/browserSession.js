@@ -1,26 +1,37 @@
 import { chromium } from "playwright";
 
 const BASE = process.env.METAL_ARCHIVES_BASE_URL;
+const BD_WS = process.env.BRIGHTDATA_WS_ENDPOINT;
 
 let browser = null;
 let page = null;
 
-// Navigate to a real browse page so Cloudflare issues cf_clearance before any
-// AJAX calls are made. The browse/bands path is known to load cleanly.
+// When BRIGHTDATA_WS_ENDPOINT is set, connect to BrightData's Scraping Browser
+// via CDP — it handles Cloudflare Bot Management on residential IPs.
+// Without it, fall back to a local headless Chromium (works for local dev).
 async function ensureSession() {
   if (page) return page;
-  browser = await chromium.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-  });
-  const context = await browser.newContext({
-    userAgent:
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-  });
+
+  if (BD_WS) {
+    browser = await chromium.connectOverCDP(BD_WS);
+  } else {
+    browser = await chromium.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+    });
+  }
+
+  const context = BD_WS
+    ? browser.contexts()[0] ?? (await browser.newContext())
+    : await browser.newContext({
+        userAgent:
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+      });
+
   page = await context.newPage();
   await page.goto(`${BASE}/browse/bands`, { waitUntil: "load", timeout: 120_000 });
   // Give Cloudflare challenge JS time to complete and set cookies
-  await page.waitForTimeout(3000);
+  if (!BD_WS) await page.waitForTimeout(3000);
   return page;
 }
 
