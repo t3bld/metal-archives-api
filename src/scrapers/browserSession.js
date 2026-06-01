@@ -9,10 +9,18 @@ let page = null;
 // AJAX calls are made. The browse/bands path is known to load cleanly.
 async function ensureSession() {
   if (page) return page;
-  browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext();
+  browser = await chromium.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+  });
+  const context = await browser.newContext({
+    userAgent:
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+  });
   page = await context.newPage();
-  await page.goto(`${BASE}/browse/bands`, { waitUntil: "networkidle", timeout: 60_000 });
+  await page.goto(`${BASE}/browse/bands`, { waitUntil: "load", timeout: 120_000 });
+  // Give Cloudflare challenge JS time to complete and set cookies
+  await page.waitForTimeout(3000);
   return page;
 }
 
