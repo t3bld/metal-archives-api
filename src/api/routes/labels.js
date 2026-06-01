@@ -19,7 +19,12 @@ const searchRoute = createRoute({
   path: "/labels/search",
   tags: ["Labels"],
   summary: "Search labels by name",
-  request: { query: z.object({ q: z.string().min(1) }) },
+  request: {
+    query: z.object({
+      q: z.string().min(1),
+      limit: z.coerce.number().int().min(1).max(500).default(200).optional(),
+    }),
+  },
   responses: {
     200: {
       content: { "application/json": { schema: LabelSearchResultSchema } },
@@ -53,8 +58,8 @@ const detailRoute = createRoute({
 export const labelsRouter = new OpenAPIHono();
 
 labelsRouter.openapi(searchRoute, async (c) => {
-  const { q } = c.req.valid("query");
-  const results = await searchLabels(q);
+  const { q, limit } = c.req.valid("query");
+  const results = await searchLabels(q, { limit });
   return c.json(results);
 });
 

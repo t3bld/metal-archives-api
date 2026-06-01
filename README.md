@@ -31,7 +31,7 @@ Swagger UI available at `http://localhost:3000/docs`.
 ### Use CLI
 
 ```
-node src/index.js --<object> <id|name> [--output <file>]
+node src/index.js --<object> <id|name> [--output <file>] [--limit <n>]
 ```
 
 | Flag | `<id\|name>` | Description |
@@ -45,6 +45,7 @@ node src/index.js --<object> <id|name> [--output <file>]
 | Flag | Description |
 |---|---|
 | `--output <file>` | Write result to a JSON file (default: stdout) |
+| `--limit <n>` | Max search results to return (default: 200) |
 
 **Examples**
 

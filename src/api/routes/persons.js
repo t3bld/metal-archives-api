@@ -19,7 +19,12 @@ const searchRoute = createRoute({
   path: "/persons/search",
   tags: ["Persons"],
   summary: "Search persons by name or pseudonym",
-  request: { query: z.object({ q: z.string().min(1) }) },
+  request: {
+    query: z.object({
+      q: z.string().min(1),
+      limit: z.coerce.number().int().min(1).max(500).default(200).optional(),
+    }),
+  },
   responses: {
     200: {
       content: { "application/json": { schema: PersonSearchResultSchema } },
@@ -53,8 +58,8 @@ const detailRoute = createRoute({
 export const personsRouter = new OpenAPIHono();
 
 personsRouter.openapi(searchRoute, async (c) => {
-  const { q } = c.req.valid("query");
-  const results = await searchPersons(q);
+  const { q, limit } = c.req.valid("query");
+  const results = await searchPersons(q, { limit });
   return c.json(results);
 });
 

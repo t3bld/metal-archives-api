@@ -15,6 +15,7 @@ function parseArgs(argv) {
     person: null,
     label: null,
     output: null,
+    limit: 200,
   };
 
   const flags = {
@@ -28,6 +29,10 @@ function parseArgs(argv) {
     },
     "--output": (v) => {
       args.output = v;
+      return true;
+    },
+    "--limit": (v) => {
+      args.limit = parseInt(v, 10);
       return true;
     },
     "--releases": (v) => {
@@ -94,7 +99,7 @@ async function handleArtist(args) {
   const id = await resolveId(args.artist, {
     entity: "artist",
     flag: "--artist",
-    searchFn: searchArtists,
+    searchFn: (q) => searchArtists(q, { limit: args.limit }),
     listRow: (r) => `  ${r.id.padEnd(8)} ${r.name.padEnd(40)} ${r.genre} — ${r.country}`,
     found: (r) => `${r.name} (ID ${r.id})`,
   });
@@ -114,7 +119,7 @@ async function handleRelease(args) {
   const id = await resolveId(args.release, {
     entity: "release",
     flag: "--releases",
-    searchFn: searchReleases,
+    searchFn: (q) => searchReleases(q, { limit: args.limit }),
     listRow: (r) => `  ${r.id.padEnd(8)} ${r.title.padEnd(40)} ${r.type} — ${r.artistName}`,
     found: (r) => `${r.title} by ${r.artistName} (ID ${r.id})`,
   });
@@ -134,7 +139,7 @@ async function handlePerson(args) {
   const id = await resolveId(args.person, {
     entity: "person",
     flag: "--persons",
-    searchFn: searchPersons,
+    searchFn: (q) => searchPersons(q, { limit: args.limit }),
     listRow: (r) =>
       `  ${r.id.padEnd(8)} ${r.pseudonym.padEnd(30)} ${r.name ?? ""} — ${r.country ?? ""}`,
     found: (r) => `${r.pseudonym} (ID ${r.id})`,
@@ -155,7 +160,7 @@ async function handleLabel(args) {
   const id = await resolveId(args.label, {
     entity: "label",
     flag: "--labels",
-    searchFn: searchLabels,
+    searchFn: (q) => searchLabels(q, { limit: args.limit }),
     listRow: (r) =>
       `  ${r.id.padEnd(8)} ${r.name.padEnd(40)} ${r.status ?? ""} — ${r.country ?? ""}`,
     found: (r) => `${r.name} (ID ${r.id})`,

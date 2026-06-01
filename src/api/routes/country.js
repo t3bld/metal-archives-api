@@ -8,9 +8,7 @@ const countryRoute = createRoute({
   method: "get",
   path: "/country/{code}",
   tags: ["Country"],
-  summary: "Scrape all bands for a country (by ISO-2 code or full name)",
-  description:
-    "Launches a headless browser to bypass Cloudflare, then paginates through all bands for the given country. This may take a minute for large countries.",
+  summary: "Scrape all bands for a country by ISO-2 code or full name",
   request: { params: z.object({ code: z.string() }) },
   responses: {
     200: {

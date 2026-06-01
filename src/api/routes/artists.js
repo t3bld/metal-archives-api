@@ -19,7 +19,12 @@ const searchRoute = createRoute({
   path: "/artists/search",
   tags: ["Artists"],
   summary: "Search artists by name",
-  request: { query: z.object({ q: z.string().min(1) }) },
+  request: {
+    query: z.object({
+      q: z.string().min(1),
+      limit: z.coerce.number().int().min(1).max(500).default(200).optional(),
+    }),
+  },
   responses: {
     200: {
       content: { "application/json": { schema: ArtistSearchResultSchema } },
@@ -53,8 +58,8 @@ const detailRoute = createRoute({
 export const artistsRouter = new OpenAPIHono();
 
 artistsRouter.openapi(searchRoute, async (c) => {
-  const { q } = c.req.valid("query");
-  const results = await searchArtists(q);
+  const { q, limit } = c.req.valid("query");
+  const results = await searchArtists(q, { limit });
   return c.json(results);
 });
 
