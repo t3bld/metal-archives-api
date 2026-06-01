@@ -3,6 +3,7 @@ import fs from "node:fs";
 import { resolveCountry, scrapeBands } from "./scrapers/fetchArtistsByCountry.js";
 import { scrapeArtist } from "./scrapers/scrapeArtist.js";
 import { searchArtists, searchReleases, searchPersons, searchLabels } from "./scrapers/search.js";
+import { closeBrowserSession } from "./scrapers/browserSession.js";
 import { scrapeRelease } from "./scrapers/scrapeRelease.js";
 import { scrapePerson } from "./scrapers/scrapePerson.js";
 import { scrapeLabel } from "./scrapers/scrapeLabel.js";
@@ -234,7 +235,9 @@ async function main() {
   process.exit(1);
 }
 
-main().catch((err) => {
-  console.error(err.message);
-  process.exit(1);
-});
+main()
+  .catch((err) => {
+    console.error(err.message);
+    process.exitCode = 1;
+  })
+  .finally(() => closeBrowserSession());
