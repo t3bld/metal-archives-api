@@ -57,8 +57,8 @@ node src/index.js --<object> <id|name> [--output <file>] [--limit <n>]
 node src/index.js --artists "Arkuum"
 node src/index.js --artist 3540400281 --output arkuum.json
 node src/index.js --releases "Hier ist kein Licht"
-node src/index.js --release 1290383 --output hier.json
-node src/index.js --persons "David Theobald"
+node src/index.js --release 1290383
+node src/index.js --persons "David Theobald" --limit 5
 node src/index.js --labels "Nuclear Blast"
 node src/index.js --country DE --limit 50
 ```
@@ -67,8 +67,6 @@ node src/index.js --country DE --limit 50
 
 Running this scraper in a cloud environment e.g. Railway requires a proxy service like [BrightData](https://brightdata.com) to route requests through a residential IP. This is necessary because cloud server IPs are blocked by the site's bot protection.
 
-**This is not recommended for large-scale use.** Running thousands of requests through a paid proxy service is expensive and puts unnecessary load on Metal Archives. If you just need to look something up, use the CLI locally — no proxy is required.
-
 This is configured via the `.env` file:
 
 ```env
@@ -76,3 +74,18 @@ This is configured via the `.env` file:
 BRIGHTDATA_ENABLED=false
 BRIGHTDATA_WS_ENDPOINT=wss://brd-customer-...@brd.superproxy.io:9222
 ```
+
+
+## ToDos
+
+**Releases**
+
+- [ ] Include tracklist
+
+**Members**
+
+- [ ] Check response payload
+
+**Labels**
+
+- [ ] Check response payload
